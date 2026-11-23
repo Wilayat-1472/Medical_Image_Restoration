@@ -1,0 +1,24 @@
+__include__: "default.yaml"
+
+model:
+  name: "restormer_unet"
+  restormer_unet:
+    dim: 24
+    num_blocks: [2, 2, 2, 2]
+    num_heads: [1, 2, 4, 8]
+
+training:
+  accelerator: "gpu"
+  devices: 1
+  precision: "16-mixed"
+  max_epochs: 300
+  batch_size: 4
+  num_workers: 4
+
+  optimizer:
+    name: "adamw"
+    lr: 0.0001
+    weight_decay: 0.01
+
+data:
+  target_size: 256

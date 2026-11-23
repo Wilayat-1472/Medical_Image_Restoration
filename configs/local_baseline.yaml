@@ -1,0 +1,17 @@
+__include__: cpu_config.yaml
+
+# Small CPU experiment to verify training and deployment using real X-rays.
+model:
+  light_unet:
+    base_filters: 16
+    depth: 3
+training:
+  max_epochs: 5
+  batch_size: 16
+  num_workers: 0
+  num_threads: 4
+  log_every_n_steps: 20
+  scheduler:
+    T_max: 5
+data:
+  target_size: 64

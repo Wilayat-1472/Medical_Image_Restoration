@@ -1,0 +1,40 @@
+__include__: colab_t4.yaml
+
+# A fine-tuning recipe, not new trained weights. Keep the same architecture.
+# Initialize using --init_weights checkpoints/colab_t4/light_unet_best.pt.
+training:
+  max_epochs: 10
+  optimizer:
+    lr: 0.00003
+  scheduler:
+    T_max: 10
+
+loss:
+  l1_weight: 0.5
+  ssim_weight: 0.3
+  perceptual_weight: 0.0
+  charbonnier_weight: 0.05
+  edge_weight: 0.15
+
+data:
+  identity_probability: 0.2
+  degradation:
+    gaussian_noise:
+      std_range: [3, 25]
+    salt_pepper_noise:
+      amount_range: [0.005, 0.05]
+    speckle_noise:
+      std_range: [0.01, 0.05]
+    motion_blur:
+      kernel_size_range: [3, 9]
+    gaussian_blur:
+      kernel_size_range: [3, 7]
+      sigma_range: [0.3, 1.5]
+    defocus_blur:
+      radius_range: [1, 3]
+    contrast_reduction:
+      factor_range: [0.7, 1.0]
+    compression:
+      quality_range: [60, 95]
+    mixed_degradation:
+      max_degradations: 2
