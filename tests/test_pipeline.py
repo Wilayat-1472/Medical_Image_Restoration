@@ -8,7 +8,7 @@ import torch
 from utils.config import load_config
 from utils.checkpoint import load_model, save_checkpoint
 from models.factory import create_model
-from data.dataset import MedicalRestorationDataset
+from data.dataset import MedicalRestorationDataset, SyntheticDegradationDataset
 from data.degradation import apply_mixed_degradation, add_gaussian_blur, add_salt_pepper_noise
 from data.io import load_image, save_image
 from data.preprocessing import MedicalTransform
@@ -91,6 +91,27 @@ def test_official_splits_and_synthetic_validation(tmp_path):
     assert len(ds) == 3
     torch.testing.assert_close(ds[0]['degraded'], ds[0]['degraded'])
     assert all('/val/' in p for p, _ in ds.pairs)
+
+
+def test_explicit_image_list_outside_cwd_and_relocated_validation(tmp_path):
+    paths = []
+    for index in range(30):
+        # Include train/val/test directory names without opting into directory
+        # split discovery: this API's explicit image list remains authoritative.
+        path = tmp_path / 'original' / ('train', 'val', 'test')[index % 3] / f'{index}.png'
+        save_image(path, np.random.default_rng(index).random((32, 32, 3), dtype=np.float32))
+        paths.append(path)
+    ds = SyntheticDegradationDataset(iter(paths), split='val')
+    assert len(ds) == 3
+    expected = ds[0]['degraded']
+    torch.testing.assert_close(expected, ds[0]['degraded'])
+    import shutil
+    shutil.copytree(tmp_path / 'original', tmp_path / 'relocated')
+    moved = [tmp_path / 'relocated' / p.relative_to(tmp_path / 'original') for p in paths]
+    other = SyntheticDegradationDataset(moved, split='val')
+    torch.testing.assert_close(expected, other[0]['degraded'])
+    with pytest.raises(ValueError, match='at least one'):
+        SyntheticDegradationDataset([])
 
 
 def test_inference_shapes_batch_and_validation():

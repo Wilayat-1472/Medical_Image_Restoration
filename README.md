@@ -167,6 +167,12 @@ datasets/processed/
 
 Each `clean` directory can have a sibling `degraded` directory containing matching relative filenames. Missing counterparts get synthetic degradation. A flat `clean/` tree or modality/clean trees are also accepted; they use deterministic 80/10/10 **image-level** splits. Use explicit patient-separated splits for studies with multiple images per patient.
 
+`SyntheticDegradationDataset(image_paths, split="val")` also accepts absolute paths
+or an iterable of paths outside the working directory. The supplied list is
+authoritative, even if its common parent contains directories named `train`,
+`val`, or `test`. Validation/test corruption seeds use paths relative to that
+common parent, so moving the same image tree preserves the synthetic evaluation.
+
 For local source data, put files in `datasets/<modality>/images/`, then run:
 
 ```bash
@@ -177,7 +183,7 @@ Conversion supports ordinary rasters, `.dcm`, `.nii[.gz]`, `.npy` volumes and fa
 
 ## Verification
 
-The latest code check passed **44 automated tests**, covering model forward/backward passes, checkpoint loading, training and fine-tuning, image conversion, aligned pairs, upload validation, HTTP endpoints, and detail preservation. The quality regressions include exact original-pixel preservation at 0%, high-resolution detail surviving the proxy path, valid strength ranges, and train-only identity examples.
+The latest code check passed **45 automated tests**, covering model forward/backward passes, checkpoint loading, training and fine-tuning, image conversion, aligned pairs, upload validation, HTTP endpoints, and detail preservation. The quality regressions include exact original-pixel preservation at 0%, high-resolution detail surviving the proxy path, valid strength ranges, and train-only identity examples.
 
 Run the automated suite from the project root:
 

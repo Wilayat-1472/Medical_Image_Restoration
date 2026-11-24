@@ -1,5 +1,6 @@
 """Aligned restoration pairs with reproducible, disjoint train/val/test splits."""
 import hashlib
+import os
 import random
 from pathlib import Path
 import numpy as np
@@ -48,7 +49,7 @@ class MedicalRestorationDataset(Dataset):
         self.degradation_config = degradation_config
         root = Path(root_dir)
         # Official, preassigned splits (e.g. MedMNIST) take precedence.
-        explicit = [(root / name).is_dir() for name in ('train', 'val', 'test')]
+        explicit = [(root / name).is_dir() for name in ('train', 'val', 'test')] if image_paths is None else [False] * 3
         if any(explicit) and not all(explicit):
             raise ValueError('Explicit data splits require train/, val/ and test/ directories')
         if all(explicit):
@@ -96,7 +97,13 @@ class MedicalRestorationDataset(Dataset):
 
 class SyntheticDegradationDataset(MedicalRestorationDataset):
     def __init__(self, image_paths, transform=None, max_degradations=3, split='train', **kwargs):
-        super().__init__('.', image_paths=image_paths, transform=transform, split=split,
+        # Paths may live outside the process working directory. Use their common
+        # parent for portable validation seeds, not relative_to('.') in __getitem__.
+        paths = [Path(p).expanduser().resolve() for p in image_paths]
+        if not paths:
+            raise ValueError('Provide at least one reference image path')
+        root = os.path.commonpath([str(p.parent) for p in paths])
+        super().__init__(root, image_paths=paths, transform=transform, split=split,
                          max_degradations=max_degradations, **kwargs)
 
 
